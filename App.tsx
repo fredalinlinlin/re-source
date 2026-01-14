@@ -64,11 +64,13 @@ const App: React.FC = () => {
       <div className="fixed inset-0 pointer-events-none z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01),rgba(255,255,255,0.03))] bg-[length:100%_2px,3px_100%] opacity-30 mix-blend-overlay"></div>
       
       {/* Main Container - Silver Metallic Style */}
-      <div className="w-full h-screen sm:h-[90vh] sm:max-w-[480px] bg-[#0a0a0a] border-x border-[#333] flex flex-col relative z-10 overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.9)] sm:border-y sm:rounded-sm">
+      {/* Changed h-screen to h-[100dvh] for mobile browser address bar handling */}
+      <div className="w-full h-[100dvh] sm:h-[90vh] sm:max-w-[480px] bg-[#0a0a0a] border-x border-[#333] flex flex-col relative z-10 overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.9)] sm:border-y sm:rounded-sm">
         
         {/* Screen: INTRO */}
         {gameState === 'INTRO' && (
-          <div className="flex flex-col h-full p-6 animate-fadeIn justify-center">
+          // Added pb-20 for mobile safety
+          <div className="flex flex-col h-full p-6 pb-20 sm:pb-6 animate-fadeIn justify-center">
             <div className="text-center mb-12">
               <h1 className="text-4xl text-[#e0e0e0] font-bold drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] mb-4 leading-none tracking-[0.2em]">
                 <GlitchText text="RE:SOURCE" />
@@ -93,7 +95,8 @@ const App: React.FC = () => {
 
         {/* Screen: UPLOAD */}
         {gameState === 'UPLOAD' && (
-          <div className="p-6 h-full">
+          // Added pb-20 for mobile safety
+          <div className="p-6 pb-20 sm:pb-6 h-full">
             <UploadScreen onStart={handleStartGame} />
           </div>
         )}
@@ -131,7 +134,8 @@ const App: React.FC = () => {
             </div>
 
             {/* Options */}
-            <div className="flex flex-col gap-4 mt-auto pb-6">
+            {/* Added pb-20 for mobile safety */}
+            <div className="flex flex-col gap-4 mt-auto pb-20 sm:pb-6">
               {showOptions && currentScene.options.map((opt, idx) => (
                 <button
                   key={idx}

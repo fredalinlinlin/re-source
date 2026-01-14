@@ -38,7 +38,8 @@ const ResultCard: React.FC<ResultCardProps> = ({ view, character, charId, onNext
       </div>
 
       {/* Action Button Area - Metallic Style */}
-      <div className="w-full p-5 bg-[#050505] border-t border-[#333] relative z-20">
+      {/* Increased bottom padding (pb-16) for mobile safety area */}
+      <div className="w-full p-5 pb-16 sm:pb-5 bg-[#050505] border-t border-[#333] relative z-20">
         <button 
           onClick={isAvatar ? onNext : onRestart}
           className="w-full py-4 bg-gradient-to-r from-[#4b5563] via-[#d1d5db] to-[#4b5563] text-black font-bold font-mono text-base tracking-[0.2em] transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:brightness-110 active:scale-[0.99] border border-[#9ca3af]"
