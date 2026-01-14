@@ -6,6 +6,7 @@
     <title>尋回原檔：最後的筆觸</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Base Setup */
         body {
             background-color: #050505;
             color: #c0c0c0;
@@ -23,6 +24,9 @@
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #111; }
         ::-webkit-scrollbar-thumb { background: #a0a0a0; border-radius: 2px; box-shadow: 0 0 5px rgba(255, 255, 255, 0.3); }
+        
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
         /* Glitch Animation */
         @keyframes glitch-anim-1 {
@@ -48,17 +52,15 @@
 
         /* Utilities */
         .hidden-screen { display: none !important; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 <script type="importmap">
 {
   "imports": {
-    "vite": "https://esm.sh/vite@^7.3.1",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "react": "https://esm.sh/react@^19.2.3",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3"
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
   }
 }
 </script>
@@ -69,8 +71,461 @@
     <div class="fixed inset-0 pointer-events-none z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01),rgba(255,255,255,0.03))] bg-[length:100%_2px,3px_100%] opacity-30 mix-blend-overlay"></div>
 
     <!-- Main Container -->
-    <div id="root" class="w-full h-full"></div>
+    <div id="app-container" class="w-full h-full sm:h-[90vh] sm:max-w-[480px] bg-[#0a0a0a] border-x border-[#333] flex flex-col relative z-10 overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.9)] sm:border-y sm:rounded-sm">
 
-    <script type="module" src="./index.tsx"></script>
+        <!-- 1. INTRO SCREEN -->
+        <div id="screen-intro" class="flex flex-col h-full p-6 pb-20 sm:pb-6 animate-fadeIn justify-center">
+            <div class="text-center mb-12">
+                <h1 class="text-4xl text-[#e0e0e0] font-bold drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] mb-4 leading-none tracking-[0.2em] relative inline-block group cursor-default">
+                    <span class="relative z-10">RE:SOURCE</span>
+                    <span class="absolute top-0 left-[2px] w-full h-full text-[#a0a0a0] z-0 opacity-75 glitch-layer-1 hidden group-hover:block" aria-hidden="true">RE:SOURCE</span>
+                    <span class="absolute top-0 -left-[2px] w-full h-full text-[#808080] z-0 opacity-75 glitch-layer-2 hidden group-hover:block" aria-hidden="true">RE:SOURCE</span>
+                </h1>
+                <div class="text-lg text-[#888] font-light tracking-[0.5em] uppercase border-t border-[#333] pt-4 inline-block">尋回原檔</div>
+            </div>
+            <div class="text-sm text-[#aaa] leading-relaxed mb-12 border-l border-[#444] pl-6 py-2">
+                <p class="mb-4">時間是 2046 年。</p>
+                <p class="mb-4">所有的創作都已破碎，化為漂浮在數位世界中的殘骸。</p>
+                <p>準備好尋找你遺失的「完全原創之物」了嗎？</p>
+            </div>
+            <button onclick="goToUpload()" class="w-full py-4 bg-gradient-to-r from-[#666] via-[#bbb] to-[#666] text-black font-bold text-lg hover:via-[#fff] hover:shadow-[0_0_20px_rgba(255,255,255,0.5)] transition-all duration-300 tracking-[0.2em] cursor-pointer">
+                連線至伺服器
+            </button>
+        </div>
+
+        <!-- 2. UPLOAD SCREEN -->
+        <div id="screen-upload" class="hidden-screen flex flex-col h-full p-6 pb-20 sm:pb-6 animate-fadeIn">
+            <div class="flex justify-between text-xs sm:text-sm text-[#888] border-b border-[#333] pb-2 mb-4 tracking-widest">
+                <span>STEP: 身份同步</span>
+                <span>STATUS: WAITING</span>
+            </div>
+            <div class="text-center text-[#ccc] mb-6 text-sm sm:text-base leading-relaxed">
+                請上傳一張照片以建立神經連結。<br />
+                <span class="text-xs text-[#666] font-mono">(此照片將用於生成你的數位化身)</span>
+            </div>
+            
+            <input type="file" id="file-input" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+            
+            <div onclick="document.getElementById('file-input').click()" class="border border-dashed border-[#666] rounded-sm h-[250px] sm:h-[300px] flex flex-col justify-center items-center cursor-pointer transition-all duration-300 hover:bg-[#151515] hover:border-[#fff] hover:shadow-[0_0_20px_rgba(255,255,255,0.15)] relative overflow-hidden bg-[#0c0c0c] mb-6 group">
+                <img id="upload-preview" class="hidden w-full h-full object-contain">
+                <div id="upload-placeholder" class="text-center group-hover:scale-105 transition-transform">
+                    <div class="text-6xl text-[#444] group-hover:text-[#e0e0e0] mb-4 font-thin">+</div>
+                    <div class="text-[#666] group-hover:text-[#e0e0e0] tracking-widest text-sm">點擊拍攝或上傳</div>
+                </div>
+            </div>
+
+            <button id="btn-start-game" onclick="startGame()" disabled class="mt-auto w-full py-4 text-black font-bold text-lg font-mono transition-all duration-300 uppercase tracking-[0.2em] border border-[#666] bg-[#1a1a1a] text-[#444] border-[#333] cursor-not-allowed">
+                開始同步並進入廢墟
+            </button>
+        </div>
+
+        <!-- 3. GAME SCREEN -->
+        <div id="screen-game" class="hidden-screen flex flex-col h-full p-5">
+            <!-- Header -->
+            <div class="flex justify-between text-[10px] text-[#666] border-b border-[#333] pb-2 mb-4 shrink-0 font-mono tracking-widest">
+                <span>LOC: LAYER_0</span>
+                <div class="w-[100px] h-2 border border-[#444] p-[1px] bg-[#000]">
+                    <div id="progress-bar" class="h-full bg-[#ccc] shadow-[0_0_5px_rgba(255,255,255,0.5)] transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <!-- Text Content (Scrollable) -->
+            <div id="game-scroll-area" class="flex-grow overflow-y-auto mb-4 scrollbar-hide">
+                <div class="text-lg leading-relaxed text-[#d0d0d0] mb-8 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
+                    <span id="typewriter-text"></span><span class="inline-block w-[10px] h-[1.2em] bg-[#c0c0c0] animate-blink align-text-bottom ml-1 shadow-[0_0_8px_#ffffff]"></span>
+                </div>
+                <div id="question-text" class="hidden text-[#fff] font-bold mb-6 border-l-2 border-[#fff] pl-4 animate-fadeIn shadow-[0_0_15px_rgba(255,255,255,0.05)] py-3 bg-[#ffffff05] tracking-wide"></div>
+            </div>
+            
+            <!-- Options (Bottom Padding for Mobile) -->
+            <div id="options-container" class="flex flex-col gap-4 mt-auto pb-20 sm:pb-6"></div>
+        </div>
+
+        <!-- 4. PROCESSING SCREEN -->
+        <div id="screen-processing" class="hidden-screen flex flex-col items-center justify-center h-full animate-fadeIn text-center p-6">
+            <div class="w-[80px] h-[80px] relative mb-10">
+                <div class="absolute inset-0 border-4 border-[#333] rounded-full"></div>
+                <div class="absolute inset-0 border-4 border-t-[#e0e0e0] border-r-[#e0e0e0] border-b-transparent border-l-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(255,255,255,0.2)]"></div>
+            </div>
+            <div class="text-xl text-[#e0e0e0] mb-6 font-mono tracking-[0.2em] uppercase drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">
+                重組原創數據中
+            </div>
+            <div id="processing-logs" class="font-mono text-xs text-[#888] text-left w-full max-w-[320px] h-[160px] overflow-hidden border border-[#222] p-4 bg-[#080808]">
+                <!-- Logs will be injected here -->
+            </div>
+        </div>
+
+        <!-- 5. RESULT SCREEN -->
+        <div id="screen-result" class="hidden-screen h-full flex flex-col bg-[#050505] relative overflow-hidden animate-fadeIn border border-[#333] shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+             <!-- Image Container -->
+             <div class="flex-grow relative w-full overflow-hidden bg-[#0a0a0a] flex items-center justify-center group">
+                 <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+                 <img id="result-image" src="" class="w-full h-full object-contain relative z-10 drop-shadow-[0_10px_20px_rgba(0,0,0,1)] transition-transform duration-700 group-hover:scale-[1.02]" onerror="this.src='https://placehold.co/1080x1920/222/aaa?text=Image+Not+Found'">
+             </div>
+             
+             <!-- Action Button (Increased bottom padding for mobile) -->
+             <div class="w-full p-5 pb-16 sm:pb-5 bg-[#050505] border-t border-[#333] relative z-20">
+                <button id="result-btn" onclick="nextResultStep()" class="w-full py-4 bg-gradient-to-r from-[#4b5563] via-[#d1d5db] to-[#4b5563] text-black font-bold font-mono text-base tracking-[0.2em] transition-all duration-300 shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:brightness-110 active:scale-[0.99] border border-[#9ca3af]">
+                    查看場景 (SCENARIO) >>
+                </button>
+             </div>
+             
+             <!-- Info Tag -->
+             <div class="absolute top-4 right-4 text-[10px] text-[#555] font-mono tracking-widest pointer-events-none">
+                ID: <span id="result-id-display"></span>
+             </div>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA ---
+        const scenes = {
+            "start": {
+                text: "【Q1. 邊界的視角】\n你來到伺服器邊界。這裡重力失衡，空中漂浮著巨大的 3D 漢堡與半截羅馬柱。",
+                question: "面對這片混亂，你的第一個動作是？",
+                options: [
+                    { text: "A. [分析] 觀察材質細節，分析潛在危險。", next: "q2", type: "J" },
+                    { text: "B. [感知] 被荒謬感吸引，拍照當作靈感。", next: "q2", type: "P" }
+                ]
+            },
+            "q2": {
+                text: "【Q2. 入口的選擇】\n眼前有兩個模糊的入口。左邊發出刺耳雜訊，右邊安靜如黑洞。",
+                question: "你決定從哪裡進入？",
+                options: [
+                    { text: "A. [喧鬧側] 充滿雜訊的崩壞大門", next: "q3_1", type: "E" },
+                    { text: "B. [靜謐側] 隱藏在暗處的程式漏洞", next: "q3_2", type: "I" }
+                ]
+            },
+            "q3_1": {
+                text: "【喧鬧的遺跡】\n遇到一個全身呈現「紫色方格」的迷途 NPC，正對著空氣撞牆。",
+                question: "你會怎麼處理它？",
+                options: [
+                    { text: "A. [理性] 輸入修復指令，解決路徑錯誤。", next: "q4_1", type: "T" },
+                    { text: "B. [情感] 牽起它的手，帶它去安全草地。", next: "q4_2", type: "F" }
+                ]
+            },
+            "q3_2": {
+                text: "【靜謐的深淵】\n大廳供奉著「世界名作」，走近一看只是一張畫質極差的貓咪迷因圖。",
+                question: "你的第一反應是？",
+                options: [
+                    { text: "A. [批判] 「就這？」只是普通的低畫質 JPG。", next: "q4_3", type: "T" },
+                    { text: "B. [讚嘆] 這是那個時代的「集體潛意識」。", next: "q4_4", type: "F" }
+                ]
+            },
+            "q4_1": {
+                text: "【Q4. 損壞的秘密】\n發現發光的「損壞資料夾」，裡面有幾則被刪除的貼文。",
+                question: "你會怎麼做？",
+                options: [
+                    { text: "A. [探究] 修復文字，想知道原本的故事。", next: "q5_1", type: "Ladder" },
+                    { text: "B. [謹慎] 可能是病毒，直接走開。", next: "q5_2", type: "Core" }
+                ]
+            },
+            "q4_2": {
+                text: "【Q4. 斷裂的裂谷】\n前方出現數據裂谷。周圍有橡皮鴨、輪胎等廢棄物。",
+                question: "你會如何通過？",
+                options: [
+                    { text: "A. [規劃] 繪製藍圖，搭建穩定橋樑。", next: "q5_1", type: "Ladder" },
+                    { text: "B. [直覺] 即興拼湊，黏在一起試試。", next: "q5_2", type: "Core" }
+                ]
+            },
+            "q4_3": {
+                text: "【Q4. 隱藏的檔案室】\n發現隱藏的檔案室，堆滿了開發日誌與廢案。",
+                question: "你會？",
+                options: [
+                    { text: "A. [分析] 掃描關鍵字，過濾垃圾資訊。", next: "q5_1", type: "Ladder" },
+                    { text: "B. [閱讀] 隨機拿起閱讀，拼湊開發者意圖。", next: "q5_2", type: "Core" }
+                ]
+            },
+            "q4_4": {
+                text: "【Q4. 凝結的房間】\n發現一個被完整保留的「玩家房間」，充滿 20 年前的生活感。",
+                question: "你會？",
+                options: [
+                    { text: "A. [搜索] 翻找櫃子，尋找隱藏道具。", next: "q5_1", type: "Ladder" },
+                    { text: "B. [體驗] 坐在電腦椅上，看著窗外風景。", next: "q5_2", type: "Core" }
+                ]
+            },
+            "q5_1": {
+                text: "【終極二選一：梯子與境界】\n你理解了通往原創之路是由無數碎片堆疊而成，像是一把梯子。",
+                question: "你會怎麼做？",
+                options: [
+                    { text: "A. 意識到尋找無意義，拋棄梯子。", next: "end", type: "Deconstruct" },
+                    { text: "B. 決定沿著碎片攀爬，建構唯一解答。", next: "end", type: "Construct" }
+                ]
+            },
+            "q5_2": {
+                text: "【終極二選一：核心與世界】\n你找到了世界的核心電池。取走它，世界就會崩塌。",
+                question: "你會？",
+                options: [
+                    { text: "A. 拔出它。為了真實，毀滅夢境。", next: "end", type: "Destroy" },
+                    { text: "B. 放開手。為了回憶，保存現狀。", next: "end", type: "Preserve" }
+                ]
+            }
+        };
+
+        const characters = {
+            "ARCHAEOLOGIST": { name: "廢話考古學家", title: "The Nonsense Archaeologist", rarity: "★★★ 極稀有", item: "備份硬碟", desc: "嚴謹的紀錄者。你把過去的廢文當作史詩研究，守護著舊時代的記憶。" },
+            "JANITOR": { name: "快取清潔工", title: "The Cache Janitor", rarity: "★★☆ 稀有", item: "強制刪除按鈕", desc: "秩序的維護者。你無法容忍混亂，在廢墟中建立新的規則。" },
+            "COLLECTIVE": { name: "預設集合體", title: "The Default Collective", rarity: "★☆☆ 普及", item: "新手禮包", desc: "群體的連結者。你是所有初始角色的混合體，重視大家的和諧。" },
+            "SURFER": { name: "超連結衝浪手", title: "The Hyperlink Surfer", rarity: "★★★ 極稀有", item: "藍色底線", desc: "創意的冒險家。你在隨機與混亂中尋找新的可能性。" },
+            "WATCHER": { name: "虛空凝視者", title: "The Void Watcher", rarity: "★★★ 極稀有", item: "系統日誌", desc: "冷靜的觀察者。你漂浮在深淵，試圖看透程式碼背後的終極邏輯。" },
+            "POET": { name: "亂碼詩人", title: "The Mojibake Poet", rarity: "★★★ 極稀有", item: "翻譯蒟蒻", desc: "深邃的解讀者。你能將無意義的亂碼轉化為動人的詩篇。" },
+            "SPEEDRUNNER": { name: "速通跑者", title: "The Speedrunner", rarity: "★★★ 極稀有", item: "計時器", desc: "刺激的追求者。你只想用最快速度衝到終點，利用 Bug 來抄捷徑。" },
+            "PUNKR": { name: "數位龐克樂手", title: "The Cyber PunkR", rarity: "★★★ 極稀有", item: "破音效果器", desc: "舞台的巨星。你把世界末日變成一場狂歡派對。" },
+            "MODDER": { name: "模組改裝師", title: "The Modder", rarity: "★★★ 極稀有", item: "萬能扳手", desc: "實用的改造者。你只在乎如何把手邊的廢棄物改裝成超酷的道具。" },
+            "WEAVER": { name: "碎片編織者", title: "The Fragment Weaver", rarity: "★★★ 極稀有", item: "數位膠水", desc: "感性的藝術家。你能欣賞崩壞之美，將不相關的碎片拼成全新的藝術。" },
+            "DRIFTER": { name: "邊界漂流者", title: "The Hitbox Drifter", rarity: "★★★ 極稀有", item: "穿牆指令", desc: "邏輯的叛逆者。你不走尋常路，探索地圖邊界外的未知虛空。" },
+            "MISSING": { name: "紫黑缺失者", title: "The Missing Texture", rarity: "★★☆ 稀有", item: "損壞的鏡子", desc: "迷惘的夢想家。失去了外表貼圖，卻擁有一顆敏感而細膩的心。" }
+        };
+
+        function calculateCharacterID(scores) {
+            const { Q2, Q3, Q4, Final } = scores;
+            if (Q2 === "E" && Q3 === "T") {
+                if (Q4 === "Ladder" && Final === "Deconstruct") return "JANITOR";
+                if (Q4 === "Ladder" && Final === "Construct") return "SPEEDRUNNER";
+                if (Q4 === "Core" && Final === "Destroy") return "JANITOR";
+                if (Q4 === "Core" && Final === "Preserve") return "COLLECTIVE";
+            }
+            if (Q2 === "E" && Q3 === "F") {
+                if (Q4 === "Ladder" && Final === "Deconstruct") return "SURFER";
+                if (Q4 === "Ladder" && Final === "Construct") return "PUNKR";
+                if (Q4 === "Core" && Final === "Destroy") return "MISSING";
+                if (Q4 === "Core" && Final === "Preserve") return "COLLECTIVE";
+            }
+            if (Q2 === "I" && Q3 === "T") {
+                if (Q4 === "Ladder" && Final === "Deconstruct") return "WATCHER";
+                if (Q4 === "Ladder" && Final === "Construct") return "MODDER";
+                if (Q4 === "Core" && Final === "Destroy") return "DRIFTER";
+                if (Q4 === "Core" && Final === "Preserve") return "ARCHAEOLOGIST";
+            }
+            if (Q2 === "I" && Q3 === "F") {
+                if (Q4 === "Ladder" && Final === "Deconstruct") return "MISSING";
+                if (Q4 === "Ladder" && Final === "Construct") return "POET";
+                if (Q4 === "Core" && Final === "Destroy") return "WEAVER";
+                if (Q4 === "Core" && Final === "Preserve") return "COLLECTIVE";
+            }
+            return "COLLECTIVE";
+        }
+
+        // --- STATE ---
+        let gameState = {
+            scores: { Q2: '', Q3: '', Q4: '', Final: '' },
+            pathStep: 0,
+            currentSceneId: 'start',
+            userImage: null,
+            charId: ''
+        };
+
+        let typewriterInterval;
+
+        // --- DOM ELEMENTS ---
+        const screens = {
+            intro: document.getElementById('screen-intro'),
+            upload: document.getElementById('screen-upload'),
+            game: document.getElementById('screen-game'),
+            processing: document.getElementById('screen-processing'),
+            result: document.getElementById('screen-result')
+        };
+
+        // --- NAVIGATION ---
+        function showScreen(screenName) {
+            Object.values(screens).forEach(el => el.classList.add('hidden-screen'));
+            screens[screenName].classList.remove('hidden-screen');
+        }
+
+        function goToUpload() {
+            showScreen('upload');
+        }
+
+        // --- UPLOAD LOGIC ---
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgUrl = e.target.result;
+                    gameState.userImage = imgUrl;
+                    
+                    const preview = document.getElementById('upload-preview');
+                    const placeholder = document.getElementById('upload-placeholder');
+                    const btn = document.getElementById('btn-start-game');
+                    
+                    preview.src = imgUrl;
+                    preview.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                    
+                    btn.disabled = false;
+                    btn.classList.remove('bg-[#1a1a1a]', 'text-[#444]', 'border-[#333]', 'cursor-not-allowed');
+                    btn.classList.add('bg-gradient-to-r', 'from-[#888]', 'via-[#e0e0e0]', 'to-[#888]', 'hover:shadow-[0_0_25px_rgba(255,255,255,0.4)]', 'cursor-pointer');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function startGame() {
+            gameState.scores = { Q2: '', Q3: '', Q4: '', Final: '' };
+            gameState.pathStep = 0;
+            gameState.currentSceneId = 'start';
+            showScreen('game');
+            renderScene();
+        }
+
+        // --- GAME LOGIC ---
+        function renderScene() {
+            const scene = scenes[gameState.currentSceneId];
+            const progressBar = document.getElementById('progress-bar');
+            const typeTextEl = document.getElementById('typewriter-text');
+            const questionEl = document.getElementById('question-text');
+            const optionsContainer = document.getElementById('options-container');
+            const scrollArea = document.getElementById('game-scroll-area');
+
+            // Reset UI
+            typeTextEl.innerText = '';
+            questionEl.innerText = '';
+            questionEl.classList.add('hidden');
+            optionsContainer.innerHTML = '';
+            
+            // Update Progress
+            const progress = Math.min((gameState.pathStep / 5) * 100, 100);
+            progressBar.style.width = `${progress}%`;
+
+            // Typewriter Effect
+            let i = 0;
+            clearInterval(typewriterInterval);
+            typewriterInterval = setInterval(() => {
+                typeTextEl.innerText += scene.text.charAt(i);
+                scrollArea.scrollTop = scrollArea.scrollHeight; // Auto scroll
+                i++;
+                if (i >= scene.text.length) {
+                    clearInterval(typewriterInterval);
+                    // Show Question
+                    setTimeout(() => {
+                        questionEl.innerText = scene.question;
+                        questionEl.classList.remove('hidden');
+                        questionEl.classList.add('animate-fadeIn');
+                        scrollArea.scrollTop = scrollArea.scrollHeight;
+                        
+                        // Show Options
+                        renderOptions(scene.options);
+                    }, 300);
+                }
+            }, 20);
+        }
+
+        function renderOptions(options) {
+            const container = document.getElementById('options-container');
+            const scrollArea = document.getElementById('game-scroll-area');
+
+            options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "text-left p-5 border border-[#444] text-[#aaa] bg-[#0f0f0f] hover:bg-[#ccc] hover:text-black hover:border-[#fff] hover:shadow-[0_0_20px_rgba(255,255,255,0.5)] transition-all duration-300 active:scale-[0.99] animate-fadeIn";
+                btn.style.animationDelay = `${idx * 0.1}s`;
+                btn.innerHTML = `<span class="font-bold mr-2">[${String.fromCharCode(65 + idx)}]</span> ${opt.text.substring(3)}`;
+                
+                btn.onclick = () => handleOptionClick(opt);
+                container.appendChild(btn);
+            });
+            setTimeout(() => {
+                 scrollArea.scrollTop = scrollArea.scrollHeight;
+            }, 100);
+        }
+
+        function handleOptionClick(option) {
+            // Score Logic
+            if (['E', 'I'].includes(option.type)) gameState.scores.Q2 = option.type;
+            if (['T', 'F'].includes(option.type)) gameState.scores.Q3 = option.type;
+            if (['Ladder', 'Core'].includes(option.type)) gameState.scores.Q4 = option.type;
+            if (option.next === 'end') gameState.scores.Final = option.type;
+
+            gameState.pathStep++;
+
+            if (option.next === 'end') {
+                startProcessing();
+            } else {
+                gameState.currentSceneId = option.next;
+                renderScene();
+            }
+        }
+
+        // --- PROCESSING LOGIC ---
+        function startProcessing() {
+            gameState.charId = calculateCharacterID(gameState.scores);
+            showScreen('processing');
+            
+            const logsContainer = document.getElementById('processing-logs');
+            logsContainer.innerHTML = '<div class="animate-blink inline-block w-2 h-4 bg-[#666] align-middle ml-2"></div>';
+            
+            const messages = [
+                "正在分析神經連結...",
+                `偵測到靈魂特質: [${gameState.charId}]`,
+                "正在連接 ComfyUI 節點...",
+                "Loading LoRA: Future_Chrome_v9...",
+                "生成大頭貼...",
+                "合成場景..."
+            ];
+
+            let i = 0;
+            const logInterval = setInterval(() => {
+                if (i < messages.length) {
+                    const div = document.createElement('div');
+                    div.className = "mb-2 border-l border-[#444] pl-2";
+                    div.innerText = `> ${messages[i]}`;
+                    // Insert before the cursor
+                    logsContainer.insertBefore(div, logsContainer.lastElementChild);
+                    i++;
+                } else {
+                    clearInterval(logInterval);
+                    setTimeout(() => showResult('avatar'), 1000);
+                }
+            }, 800);
+        }
+
+        // --- RESULT LOGIC ---
+        let currentResultView = 'avatar'; // 'avatar' or 'scene'
+
+        function showResult(view) {
+            currentResultView = view;
+            showScreen('result');
+            
+            const imgEl = document.getElementById('result-image');
+            const btnEl = document.getElementById('result-btn');
+            const idDisplay = document.getElementById('result-id-display');
+
+            // Example Images setup (local paths as requested)
+            const avatarUrl = "./result_card_example.png";
+            const sceneUrl = "./scenario_card_example.png";
+
+            idDisplay.innerText = `${gameState.charId} // ${view === 'avatar' ? 'RES' : 'SCN'}`;
+            
+            if (view === 'avatar') {
+                imgEl.src = avatarUrl;
+                btnEl.innerText = '查看場景 (SCENARIO) >>';
+                btnEl.onclick = nextResultStep;
+            } else {
+                imgEl.src = sceneUrl;
+                btnEl.innerText = '重新連線 (RESTART)';
+                btnEl.onclick = restartGame;
+            }
+        }
+
+        function nextResultStep() {
+            showResult('scene');
+        }
+
+        function restartGame() {
+            // Reset files input
+            document.getElementById('file-input').value = '';
+            document.getElementById('upload-preview').classList.add('hidden');
+            document.getElementById('upload-placeholder').classList.remove('hidden');
+            
+            const btn = document.getElementById('btn-start-game');
+            btn.disabled = true;
+            btn.className = "mt-auto w-full py-4 text-black font-bold text-lg font-mono transition-all duration-300 uppercase tracking-[0.2em] border border-[#666] bg-[#1a1a1a] text-[#444] border-[#333] cursor-not-allowed";
+
+            showScreen('intro');
+        }
+
+    </script>
 </body>
 </html>
