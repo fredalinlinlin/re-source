@@ -58,27 +58,25 @@ const App: React.FC = () => {
   const progress = Math.min((pathStep / 5) * 100, 100);
 
   return (
-    <div className="font-mono min-h-screen flex items-center justify-center p-0 sm:p-4 relative bg-[#050505]">
+    <div className="font-mono min-h-screen relative bg-[#050505] overflow-hidden text-[#c0c0c0]">
       
       {/* CRT Overlay Effects - Subtle Static */}
       <div className="fixed inset-0 pointer-events-none z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01),rgba(255,255,255,0.03))] bg-[length:100%_2px,3px_100%] opacity-30 mix-blend-overlay"></div>
       
-      {/* Main Container - Silver Metallic Style */}
-      {/* Changed h-screen to h-[100dvh] for mobile browser address bar handling */}
-      <div className="w-full h-[100dvh] sm:h-[90vh] sm:max-w-[480px] bg-[#0a0a0a] border-x border-[#333] flex flex-col relative z-10 overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.9)] sm:border-y sm:rounded-sm">
+      {/* Main Container - Full Width/Height */}
+      <div className="w-full h-[100dvh] bg-[#0a0a0a] flex flex-col relative z-10 shadow-[0_0_60px_rgba(0,0,0,0.9)]">
         
         {/* Screen: INTRO */}
         {gameState === 'INTRO' && (
-          // Added pb-20 for mobile safety
-          <div className="flex flex-col h-full p-6 pb-20 sm:pb-6 animate-fadeIn justify-center">
+          <div className="flex flex-col h-full p-6 pb-20 justify-center animate-fadeIn max-w-2xl mx-auto w-full">
             <div className="text-center mb-12">
-              <h1 className="text-4xl text-[#e0e0e0] font-bold drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] mb-4 leading-none tracking-[0.2em]">
+              <h1 className="text-4xl md:text-6xl text-[#e0e0e0] font-bold drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] mb-4 leading-none tracking-[0.2em]">
                 <GlitchText text="RE:SOURCE" />
               </h1>
-              <div className="text-lg text-[#888] font-light tracking-[0.5em] uppercase border-t border-[#333] pt-4 inline-block">尋回原檔</div>
+              <div className="text-lg md:text-xl text-[#888] font-light tracking-[0.5em] uppercase border-t border-[#333] pt-4 inline-block">尋回原檔</div>
             </div>
             
-            <div className="text-sm text-[#aaa] leading-relaxed mb-12 border-l border-[#444] pl-6 py-2">
+            <div className="text-sm md:text-base text-[#aaa] leading-relaxed mb-12 border-l border-[#444] pl-6 py-2">
               <p className="mb-4">時間是 2046 年。</p>
               <p className="mb-4">所有的創作都已破碎，化為漂浮在數位世界中的殘骸。</p>
               <p>準備好尋找你遺失的「完全原創之物」了嗎？</p>
@@ -95,17 +93,16 @@ const App: React.FC = () => {
 
         {/* Screen: UPLOAD */}
         {gameState === 'UPLOAD' && (
-          // Added pb-20 for mobile safety
-          <div className="p-6 pb-20 sm:pb-6 h-full">
+          <div className="p-6 pb-20 h-full max-w-2xl mx-auto w-full flex flex-col justify-center">
             <UploadScreen onStart={handleStartGame} />
           </div>
         )}
 
         {/* Screen: GAME */}
         {gameState === 'GAME' && (
-          <div className="flex flex-col h-full p-5">
+          <div className="flex flex-col h-full p-5 max-w-3xl mx-auto w-full">
             {/* Header */}
-            <div className="flex justify-between text-[10px] text-[#666] border-b border-[#333] pb-2 mb-4 shrink-0 font-mono tracking-widest">
+            <div className="flex justify-between text-xs text-[#666] border-b border-[#333] pb-2 mb-4 shrink-0 font-mono tracking-widest">
               <span>LOC: LAYER_0</span>
               <div className="w-[100px] h-2 border border-[#444] p-[1px] bg-[#000]">
                 <div 
@@ -117,7 +114,7 @@ const App: React.FC = () => {
 
             {/* Content */}
             <div ref={scrollRef} className="flex-grow overflow-y-auto mb-4 scrollbar-hide">
-              <div className="text-lg leading-relaxed text-[#d0d0d0] mb-8 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
+              <div className="text-lg md:text-xl leading-relaxed text-[#d0d0d0] mb-8 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
                  <Typewriter 
                    text={currentScene.text} 
                    speed={20} 
@@ -127,20 +124,19 @@ const App: React.FC = () => {
               </div>
 
               {showOptions && (
-                 <div className="text-[#fff] font-bold mb-6 border-l-2 border-[#fff] pl-4 animate-fadeIn shadow-[0_0_15px_rgba(255,255,255,0.05)] py-3 bg-[#ffffff05] tracking-wide">
+                 <div className="text-[#fff] font-bold mb-6 border-l-2 border-[#fff] pl-4 animate-fadeIn shadow-[0_0_15px_rgba(255,255,255,0.05)] py-3 bg-[#ffffff05] tracking-wide text-lg">
                    {currentScene.question}
                  </div>
               )}
             </div>
 
             {/* Options */}
-            {/* Added pb-20 for mobile safety */}
             <div className="flex flex-col gap-4 mt-auto pb-20 sm:pb-6">
               {showOptions && currentScene.options.map((opt, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleOptionClick(opt)}
-                  className="text-left p-5 border border-[#444] text-[#aaa] bg-[#0f0f0f] hover:bg-[#ccc] hover:text-black hover:border-[#fff] hover:shadow-[0_0_20px_rgba(255,255,255,0.5)] transition-all duration-300 active:scale-[0.99]"
+                  className="text-left p-5 border border-[#444] text-[#aaa] bg-[#0f0f0f] hover:bg-[#ccc] hover:text-black hover:border-[#fff] hover:shadow-[0_0_20px_rgba(255,255,255,0.5)] transition-all duration-300 active:scale-[0.99] md:text-lg"
                   style={{ animation: `fadeIn 0.5s ease forwards ${idx * 0.1}s`, opacity: 0 }}
                 >
                   <span className="font-bold mr-2">[{String.fromCharCode(65 + idx)}]</span> {opt.text.substring(3)}
@@ -152,14 +148,14 @@ const App: React.FC = () => {
 
         {/* Screen: PROCESSING */}
         {gameState === 'PROCESSING' && (
-          <div className="p-6 h-full">
+          <div className="p-6 h-full flex flex-col justify-center max-w-2xl mx-auto w-full">
             <ProcessingScreen charId={charId} onComplete={() => setGameState('RESULT_AVATAR')} />
           </div>
         )}
 
         {/* Screen: RESULTS */}
         {(gameState === 'RESULT_AVATAR' || gameState === 'RESULT_SCENE') && (
-          <div className="h-full">
+          <div className="h-full w-full">
             <ResultCard 
               view={gameState === 'RESULT_AVATAR' ? 'avatar' : 'scene'}
               character={characters[charId]}
